@@ -1,6 +1,7 @@
+from functools import total_ordering
 import random
 
-
+@total_ordering
 class Card(object):
     """一张牌"""
 
@@ -17,7 +18,7 @@ class Card(object):
         return self._suite
 
     def __str__(self):
-        if self._face == 1:
+        if self._face == 14:
             face_str = 'A'
         elif self._face == 11:
             face_str = 'J'
@@ -32,6 +33,12 @@ class Card(object):
     def __repr__(self):
         return self.__str__()
 
+    def __eq__(self, other):
+        return self.__str__() == other.__str__()
+
+    def __lt__(self, other):
+        return self.__str__() < other.__str__()
+
 
 class Poker(object):
     """一副牌"""
@@ -39,7 +46,7 @@ class Poker(object):
     def __init__(self):
         self._cards = [Card(suite, face) 
                        for suite in '♠♥♣♦'
-                       for face in range(1, 14)]
+                       for face in range(2, 15)]
         self._current = 0
 
     @property
@@ -87,11 +94,38 @@ class Player(object):
         """玩家整理手上的牌"""
         self._cards_on_hand.sort(key=card_key)
 
+    """回傳手牌中有的花色   e.g：['♠', '♣', '♥', '♦']"""
+    def suites_on_hand(self):
+        suites = []
+        for card in self._cards_on_hand:
+            if card.suite not in suites:
+                suites.append(card.suite)
+        return suites 
+
+    """列出某種花色的手牌"""
+    def find_suite(self, suite):
+        suites = []
+        
+        if suite == -1:
+            return suites
+        
+        for card in self._cards_on_hand:
+            if card.suite == suite:
+                suites.append(card)
+
+        return suites
+
+
+    def __str__(self):
+        return self._name
+    
+    def __repr__(self):
+        return self.__str__()
+
 
 # 排序规则-先根据花色再根据点数排序
 def get_key(card):
     return (card.suite, card.face)
-
 
 def main():
     p = Poker()
@@ -100,6 +134,7 @@ def main():
     for _ in range(13):
         for player in players:
             player.get(p.next)
+
     for player in players:
         print(player.name + ':', end=' ')
         player.arrange(get_key)

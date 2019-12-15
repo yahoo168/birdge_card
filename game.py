@@ -3,33 +3,21 @@ import math
 from card import *
 import sys
 import time
-import threading
-from robot import *
+from threading import Thread, Lock
 
 #  無聊的小動畫彩蛋
 
 
-def animated_loading(option, count):
+def animated_loading(option):
     if option == 1:
-        if count == 1:
-            print('原住民小石 ： 喔啊發薩撒刁得！！ 小馮我愛你！！！ ')
-            time.sleep(2.5)
-            print('醫學系小馮 ： 我也是！！ ♥你 喜歡跟你做♥心！')
-            print('關燈後...')
-            time.sleep(2.5)
-            for _ in range(10):
-                print('醫學系小馮：' + 'A' * 15 + '!!!', sep=' ')
-                time.sleep(0.5)
-
-        if count >= 2:
-            print('原住民小石 ： 喔啊發薩撒刁得！！ 小馮我愛你！！！ ')
-            time.sleep(1.5)
-            print('醫學系小馮 ：' + '我腿軟惹QQ' * count)
-            print('關燈後...')
-            time.sleep(1.5)
-            for _ in range(10):
-                print('醫學系小馮：' + 'A' * 15 * count + '!!!', sep=' ')
-                time.sleep(max(0.5 - (0.15 * count), 0.2))
+        print('原住民小石 ： 喔啊發薩撒刁得！！ 小馮我愛你！！！ ')
+        time.sleep(2.5)
+        print('醫學系小馮 ：我也是！！ ♥你 喜歡跟你做♥心！')
+        print('關燈後...')
+        time.sleep(2.5)
+        for _ in range(10):
+            print('醫學系小馮：' + 'A' * 15 + '!!!', sep=' ')
+            time.sleep(0.5)
 
     if option == 2:
         print('\n-1 跟 1 都搞錯，你他媽喜憨兒嗎？\n')
@@ -42,6 +30,49 @@ def animated_loading(option, count):
             time.sleep(.1)
             sys.stdout.flush()
 
+
+def call_choose(person, valid_suite, valid_num):
+    person.arrange(get_key)
+    print('\n你的手牌', person.cards_on_hand)
+    number = input("請輸入數值 1,2,...,7: ")
+    if number == "pass":
+        person.call_status = int(1)
+        suite, number = valid_suite, valid_num
+        print(person.name, "pass")
+    else:
+        suite = input("請輸入花色 ♠(0) ♥(1) ♦(2) ♣(3): \n")
+        if suite not in "0123" or (number not in "1234567"):
+            print("您的輸入不合規則!")
+            return call_choose(person, valid_suite, valid_num)
+        if int(number) == valid_num and (int(suite) >= valid_suite):
+            print("您的輸入不合規則!")
+            return call_choose(person, valid_suite, valid_num)
+        if int(number) < int(valid_num):
+            print("您的輸入不合規則!")
+            return call_choose(person, valid_suite, valid_num)
+        print(person.name, ["♠","♥","♦","♣"][int(suite)], number)
+    return suite, number
+
+def random_call(person, suite, number):
+    prob = (random.randint(0, 100) % 2)
+    if prob == 1:
+        if number == 7 and suite == 0:
+            sui, num = suite, number
+            person.call_status = int(1)
+            print(person.name, "pass")
+        else:
+            if int(suite) > 0:
+                sui = int(suite) - 1
+                num = number
+            else:
+                sui = 3
+                num = int(number) + 1
+            print(person.name, ["♠","♥","♦","♣"][int(sui)], num)
+    if prob == 0:
+        sui, num = suite, number
+        person.call_status = int(1)
+        print(person.name, "pass")
+    return sui, num
 
 # 出牌的人 自己選要出什麼
 def choose(person, suite_for_this_turn="♠♥♦♣"):
@@ -67,16 +98,17 @@ def choose(person, suite_for_this_turn="♠♥♦♣"):
 
     key = '%s%s' % (suite, face)
 
+    # 出的牌不在手中
     for card in person.cards_on_hand:
         if card.__repr__() == key:
             person.cards_on_hand.remove(card)
             return card
 
-    # 出的牌不在手中
     print("你選的牌不在你手中！台北的未來在丁守中！ 他要重選，你也一樣")
     return choose(person, suite_for_this_turn)
 
 # 隨機出牌 待改 花色限制問題
+
 
 def random_choose(person, num, suite_for_this_turn=-1):  # 出牌的人，它剩幾張牌
     cards_on_hand_for_a_suite = person.find_suite(suite_for_this_turn)
@@ -109,8 +141,35 @@ def show_cards(close_show=1):
         print("-"*20)
     return 0
 
-# 每回合玩牌過程
+def call(position, players, model, nickname = "國家機器"):
+    pass_count = int(0)
+    suite_on_call = int(4)
+    num_on_call = int(1)
+    while pass_count < 3:
+        person_on_turn = players[position]
+        if person_on_turn.call_status == 1:
+            position += 1
+            if position == 4:
+                position = 0
+            continue
+        if model == 0:
+            if person_on_turn.name == nickname:
+                suite_on_call, num_on_call = call_choose(person_on_turn, suite_on_call, num_on_call)
+            else:
+                suite_on_call, num_on_call = random_call(person_on_turn, suite_on_call, num_on_call)
+        if model == 1:
+            suite_on_call, num_on_call = random_call(person_on_turn, suite_on_call, num_on_call)
+        if person_on_turn.call_status == 1:
+            pass_count += 1
+        position += 1
+        if position == 4:
+            position = 0
+    for i in range(4):
+        if players[i].call_status == 0:
+            person_got_call = players[i]
+    return suite_on_call, num_on_call, person_got_call
 
+# 每回合玩牌過程
 
 def play(position, players, king, model, close_show, nickname="國家機器"):  # 玩家的名字 待改
     person_on_turn = players[position]
@@ -127,18 +186,13 @@ def play(position, players, king, model, close_show, nickname="國家機器"):  
             fst_card = random_choose(person_on_turn,
                                      len(person_on_turn.cards_on_hand))
     elif model == 1:  # 電腦自動對戰
-        if person_on_turn.name == '國家機器的助手' or '國家機器':
-            fst_card = person_on_turn.fst_turn_decide(king)
-            # print("!"*5, king, fst_card.suite)
-
-        else:
-            fst_card = random_choose(person_on_turn,
+        fst_card = random_choose(person_on_turn,
                                  len(person_on_turn.cards_on_hand))
     if close_show != -1:
         print(person_on_turn, fst_card)
 
     suite_for_this_turn = fst_card.suite  # 本回合適用的花色
-    max_face = fst_card.face
+    # max_face = fst_card.face
     # end of 第一個玩家出的牌
 
     person_got_trick = person_on_turn  # 目前牌面最大的人
@@ -151,6 +205,7 @@ def play(position, players, king, model, close_show, nickname="國家機器"):  
     # 第一張牌丟出後的牌局
     for _ in range(3):
         person_on_turn = players[position]
+
         if model == 0:
             if person_on_turn.name == nickname:
                 card_on_turn = choose(person_on_turn, fst_card.suite)
@@ -196,7 +251,7 @@ def play(position, players, king, model, close_show, nickname="國家機器"):  
 def bridge_game(model, close_show):  # 牌局開始
     p = Poker()  # 建立牌組
     p.shuffle()  # 洗牌
-
+    global count_A_win
     # 發牌
     for _ in range(13):
         for player in players:
@@ -208,18 +263,33 @@ def bridge_game(model, close_show):  # 牌局開始
 
     if close_show != -1:
         print('\n隊伍分組:\nA隊伍:{}\nB隊伍{}\n'.format(team_A, team_B))
-
-    target_for_A = 7  # 待改 叫牌引入
-    target_for_B = 14 - target_for_A
-    trick_team_A = 0
-    trick_team_B = 0
-
-    position = (random.randint(0, 100) % 4)  # 隨機從某人開始，待改
+    time.sleep(0.5)
+    print("-"*12)
+    print("叫牌階段")
+    position = (random.randint(0, 100) % 4)  # 隨機從某人開始叫牌
     # position = 0
     # king = Function 叫牌
     # trick = 叫牌()
-    king = "♠"
+    king, target_num, person_got_call = call(position, players, model)
+    king = ["♠","♥","♦","♣"][int(king)]
+    print("叫牌結果是", king ,target_num, ",由%s拿下" % person_got_call.name)
 
+    position = players.index(person_got_call) + 1
+    if position == 4:
+        position = 0
+
+    target_num = int(target_num) - 1
+    if person_got_call in team_A:
+        target_num *= -1
+    time.sleep(1.5)
+    print("-"*12)
+    print("牌局開始")
+    # 待改 叫牌引入
+    target_for_B = 7 + target_num
+    target_for_A = 14 - target_for_B
+    trick_team_A = 0
+    trick_team_B = 0
+    print("A隊需要%s墩才能獲勝,B隊需要%s墩才能獲勝" % (target_for_A, target_for_B))
     while trick_team_A != target_for_A and trick_team_B != target_for_B:
 
         # 各回合開始
@@ -246,23 +316,22 @@ def bridge_game(model, close_show):  # 牌局開始
             print()
 
     if trick_team_A == target_for_A:
-        return 1  # A隊贏了
-    else:
-        return 0
+        shared_resource_lock.acquire()
+        count_A_win += 1
+        shared_resource_lock.release()
 
 
-def control_model(count=1):
+def control_model():
     num = 1  # 牌局執行次數，預設為1，可由model選擇修改
     close_show = 1  # 是否開啟顯示過程，預設為開啟，可由model選擇修改
-    model = input("請輸入本局橋牌型態:\n\t扮演國家機器，和助手一起消滅台灣敗類，請輸入 0:\n\
+    model = input("請輸入本局型態:\n\t扮演國家機器，和助手一起消滅台灣敗類，請輸入 0:\n\
 \t電腦自動對戰，請輸入 1: \n\
 \t測試橋牌策略，請輸入 2: \n\
 \t想告白，請輸入 520:\n")
 
     if model == "520":
-        animated_loading(1, count)  # 顯示小動畫
-        count += 1
-        return control_model(count)
+        animated_loading(1)  # 顯示小動畫
+        return control_model()
 
     if model not in map(str, range(0, 3)):
         print('\n看清楚指示，瞎了去看眼科 o__o，重選啦幹\n')
@@ -292,20 +361,33 @@ def control_model(count=1):
         return (int(model), num, close_show)
 
 
-# 設定玩家
-# players = [Player('國家機器'), Player('韓國瑜'), Player('國家機器的助手'), Player('李佳芬')]
-players = [smart('國家機器'), smart('韓國瑜'), smart('國家機器的助手'), smart('李佳芬')]
-model, num, close_show = control_model()  # 此局的遊戲型態
-
+# 替共享變數（A隊勝率）上鎖
+shared_resource_lock = Lock()
+# A隊勝率
 count_A_win = 0
 
-start_time = time.time()
-for i in range(num):
-    count_A_win += bridge_game(model, close_show)
-    percent = (i / num) * 100
-    print("目前完成{}次\t進度 | {:>5.3f}%".format(i+1, percent))
-end_time = time.time()
-win_ratio = count_A_win / num
+if __name__ == "__main__":
+    # 設定玩家
+    players = [Player('國家機器'), Player('韓國瑜'), Player('國家機器的助手'), Player('李佳芬')]
+    model, num, close_show = control_model()  # 此局的遊戲型態
+    threads = []  # 儲存線程以待關閉
+    num_completed = 0
+    try:
+        start_time = time.time()
+        for i in range(num):
+            t = Thread(target=bridge_game, args=(model, close_show,))
+            t.start()  # 開啟線程
+            threads.append(t)
+            percent = (i / num) * 100
+            print("目前完成{}次\t進度 | {:>5.3f}%".format(i+1, percent))
+            num_completed +=1
 
-print('總共執行了{}次，A隊勝利{}次，勝率為{:.5f}'.format(num, count_A_win, win_ratio))
-print('共耗費{:.3f}秒'.format(end_time - start_time))
+        # 關閉線程
+        for t in threads:
+            t.join()
+    
+    finally:    
+        end_time = time.time()
+        win_ratio = count_A_win / (num_completed + 1)
+        print('總共執行了{}次，A隊勝利{}次，勝率為{:.5f}'.format(num_completed, count_A_win, win_ratio))
+        print('共耗費{:.3f}秒'.format(end_time - start_time))

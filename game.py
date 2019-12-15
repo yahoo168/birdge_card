@@ -44,7 +44,7 @@ def call_choose(person, valid_suite, valid_num):
         if suite not in "0123" or (number not in "1234567"):
             print("您的輸入不合規則!")
             return call_choose(person, valid_suite, valid_num)
-        if int(number) == valid_num and (int(suite) >= valid_suite):
+        if int(number) == int(valid_num) and (int(suite) >= valid_suite):
             print("您的輸入不合規則!")
             return call_choose(person, valid_suite, valid_num)
         if int(number) < int(valid_num):
@@ -56,18 +56,19 @@ def call_choose(person, valid_suite, valid_num):
 def random_call(person, suite, number):
     prob = (random.randint(0, 100) % 2)
     if prob == 1:
-        if number == 7 and suite == 0:
-            sui, num = suite, number
-            person.call_status = int(1)
-            print(person.name, "pass")
+        if int(suite) > 0:
+            sui = int(suite) - 1
+            num = number
+            print(person.name, ["♠","♥","♦","♣"][int(sui)], num)
         else:
-            if int(suite) > 0:
-                sui = int(suite) - 1
-                num = number
+            if int(number) == 7:
+                person.call_status = int(1)
+                sui, num = suite, number
+                print(person.name, "pass")
             else:
                 sui = 3
                 num = int(number) + 1
-            print(person.name, ["♠","♥","♦","♣"][int(sui)], num)
+                print(person.name, ["♠","♥","♦","♣"][int(sui)], num)
     if prob == 0:
         sui, num = suite, number
         person.call_status = int(1)
@@ -281,7 +282,8 @@ def bridge_game(model, close_show):  # 牌局開始
     target_num = int(target_num) - 1
     if person_got_call in team_A:
         target_num *= -1
-    time.sleep(1.5)
+    if model == 0:
+        time.sleep(1.5)
     print("-"*12)
     print("牌局開始")
     # 待改 叫牌引入
@@ -379,7 +381,7 @@ if __name__ == "__main__":
             t.start()  # 開啟線程
             threads.append(t)
             percent = (i / num) * 100
-            print("目前完成{}次\t進度 | {:>5.3f}%".format(i+1, percent))
+            print("目前完成{}次\t進度 | {:>5.3f}%".format(i, percent))
             num_completed +=1
 
         # 關閉線程
@@ -388,6 +390,6 @@ if __name__ == "__main__":
     
     finally:    
         end_time = time.time()
-        win_ratio = count_A_win / (num_completed + 1)
+        win_ratio = count_A_win / (num_completed )
         print('總共執行了{}次，A隊勝利{}次，勝率為{:.5f}'.format(num_completed, count_A_win, win_ratio))
         print('共耗費{:.3f}秒'.format(end_time - start_time))

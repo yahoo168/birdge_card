@@ -77,6 +77,7 @@ class Player(object):
     def __init__(self, name):
         self._name = name
         self._cards_on_hand = []
+        self.call_status = int(0)
 
     @property
     def name(self):

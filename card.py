@@ -78,6 +78,7 @@ class Player(object):
         self._name = name
         self._cards_on_hand = []
         self.call_status = int(0)
+        self.teammate = -1
 
     @property
     def name(self):

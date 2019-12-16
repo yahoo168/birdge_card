@@ -22,11 +22,25 @@ class smart(Player):
 	def __init__(self, name):
 		super().__init__(name)
 
-	def fst_turn_decide(self, king): # 第一個出牌
-		return random_choose(self, len(self.cards_on_hand), king)
+	def fst_turn_decide(self,num, king, ): # 第一個出牌
+		if num == 1:
+            return random_choose(self, len(self.cards_on_hand), king)
 
-	def decide(self): # 非第一個出牌
-		pass
+        else:
+            pass
+
+	def decide(self, num): # 非第一個出牌
+	    if num == 1: # 隊友拿到 或 對方拿到 且 沒更大的牌，就出最小
+            # length = len(self.cards_on_hand())
+            if self.teammate == person_got_trick:
+                pass
+        
+        # 如果我的夥伴出JQK，我就出相同花色最小的（除了king)
+        if num == 2:
+
+        
+        # 如果夥伴出小等8，我就出小於8     
+        if num == 3:
 
 if __name__ == '__main__':
 	AA = person_smart("AA")

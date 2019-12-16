@@ -50,30 +50,35 @@ def call_choose(person, valid_suite, valid_num):
         if int(number) < int(valid_num):
             print("您的輸入不合規則!")
             return call_choose(person, valid_suite, valid_num)
-        print(person.name, ["♠","♥","♦","♣"][int(suite)], number)
-    return suite, number
+        result = ["♠","♥","♦","♣"][int(suite)]+str(number)
+    return suite, number, result
 
 def random_call(person, suite, number):
     prob = (random.randint(0, 100) % 2)
-    if prob == 1:
-        if int(suite) > 0:
-            sui = int(suite) - 1
-            num = number
-            print(person.name, ["♠","♥","♦","♣"][int(sui)], num)
-        else:
-            if int(number) == 7:
-                person.call_status = int(1)
-                sui, num = suite, number
-                print(person.name, "pass")
+    if int(suite) == int(4):
+        sui = int(suite) - 1
+        num = number
+        result = ["♠","♥","♦","♣"][int(sui)]+str(num)
+    else:
+        if prob == 0:
+            sui, num = suite, number
+            person.call_status = int(1)
+            result = "pass"
+        if prob == 1:
+            if int(suite) > 0:
+                sui = int(suite) - 1
+                num = number
+                result = ["♠","♥","♦","♣"][int(sui)]+str(num)
             else:
-                sui = 3
-                num = int(number) + 1
-                print(person.name, ["♠","♥","♦","♣"][int(sui)], num)
-    if prob == 0:
-        sui, num = suite, number
-        person.call_status = int(1)
-        print(person.name, "pass")
-    return sui, num
+                if int(number) == 7:
+                    person.call_status = int(1)
+                    sui, num = suite, number
+                    result = "pass"
+                else:
+                    sui = 3
+                    num = int(number) + 1
+                    result = ["♠","♥","♦","♣"][int(sui)]+str(num)
+    return sui, num, result
 
 # 出牌的人 自己選要出什麼
 def choose(person, suite_for_this_turn="♠♥♦♣"):
@@ -155,20 +160,27 @@ def call(position, players, model, nickname = "國家機器"):
             continue
         if model == 0:
             if person_on_turn.name == nickname:
-                suite_on_call, num_on_call = call_choose(person_on_turn, suite_on_call, num_on_call)
+                suite_on_call, num_on_call, k = call_choose(person_on_turn, suite_on_call, num_on_call)
+                if close_show != -1:
+                    print(person_on_turn.name, k)
             else:
-                suite_on_call, num_on_call = random_call(person_on_turn, suite_on_call, num_on_call)
+                suite_on_call, num_on_call, k = random_call(person_on_turn, suite_on_call, num_on_call)
+                if close_show != -1:
+                    print(person_on_turn.name, k)
         if model == 1:
-            suite_on_call, num_on_call = random_call(person_on_turn, suite_on_call, num_on_call)
+            suite_on_call, num_on_call, k = random_call(person_on_turn, suite_on_call, num_on_call)
+            if close_show != -1:
+                print(person_on_turn.name, k)
         if person_on_turn.call_status == 1:
             pass_count += 1
         position += 1
         if position == 4:
             position = 0
     for i in range(4):
-        if players[i].call_status == 0:
+        if players[i].call_status == int(0):
             person_got_call = players[i]
-    return suite_on_call, num_on_call, person_got_call
+    king = ["♠","♥","♦","♣"][int(suite_on_call)]
+    return king, num_on_call, person_got_call
 
 # 每回合玩牌過程
 
@@ -186,6 +198,8 @@ def play(position, players, king, model, close_show, nickname="國家機器"):  
         else:
             fst_card = random_choose(person_on_turn,
                                      len(person_on_turn.cards_on_hand))
+
+            # 待改 fst_card = person_on_turn.fst_turn_decide()
     elif model == 1:  # 電腦自動對戰
         fst_card = random_choose(person_on_turn,
                                  len(person_on_turn.cards_on_hand))
@@ -216,6 +230,8 @@ def play(position, players, king, model, close_show, nickname="國家機器"):  
                 card_on_turn = random_choose(
                     person_on_turn, len(person_on_turn.cards_on_hand), suite_for_this_turn)
                 time.sleep(0.3)  # 稍微緩速，增強真實感
+
+
 
         if model == 1:
             card_on_turn = random_choose(
@@ -257,41 +273,45 @@ def bridge_game(model, close_show):  # 牌局開始
     for _ in range(13):
         for player in players:
             player.get(p.next)
-
     # random.shuffle(players)  # 玩家座位重排
     team_A = (players[0], players[2])  # A隊伍
     team_B = (players[1], players[3])  # B隊伍
 
+    for i in range(4):
+        players[i].teammate = players[(i+2) % 4]
+
     if close_show != -1:
         print('\n隊伍分組:\nA隊伍:{}\nB隊伍{}\n'.format(team_A, team_B))
-    time.sleep(0.5)
-    print("-"*12)
-    print("叫牌階段")
+        time.sleep(0.5)
+        print("-"*12)
+        print("叫牌階段")
+
     position = (random.randint(0, 100) % 4)  # 隨機從某人開始叫牌
     # position = 0
     # king = Function 叫牌
     # trick = 叫牌()
-    king, target_num, person_got_call = call(position, players, model)
-    king = ["♠","♥","♦","♣"][int(king)]
-    print("叫牌結果是", king ,target_num, ",由%s拿下" % person_got_call.name)
-
-    position = players.index(person_got_call) + 1
+    king, target_num, person_got = call(position, players, model)
+    
+    if close_show != -1:
+        print("叫牌結果是", king ,target_num, ",由%s拿下" % person_got.name)
+        print('-'*12)
+    
+    position = players.index(person_got) + 1
     if position == 4:
         position = 0
 
     target_num = int(target_num) - 1
-    if person_got_call in team_A:
+    if person_got in team_A:
         target_num *= -1
-    if model == 0:
-        time.sleep(1.5)
-    print("-"*12)
-    print("牌局開始")
+
     # 待改 叫牌引入
     target_for_B = 7 + target_num
     target_for_A = 14 - target_for_B
     trick_team_A = 0
     trick_team_B = 0
-    print("A隊需要%s墩才能獲勝,B隊需要%s墩才能獲勝" % (target_for_A, target_for_B))
+    if close_show != -1:
+        print("A隊需要%s墩才能獲勝,B隊需要%s墩才能獲勝" % (target_for_A, target_for_B))
+
     while trick_team_A != target_for_A and trick_team_B != target_for_B:
 
         # 各回合開始
@@ -321,8 +341,7 @@ def bridge_game(model, close_show):  # 牌局開始
         shared_resource_lock.acquire()
         count_A_win += 1
         shared_resource_lock.release()
-
-
+    return True
 def control_model():
     num = 1  # 牌局執行次數，預設為1，可由model選擇修改
     close_show = 1  # 是否開啟顯示過程，預設為開啟，可由model選擇修改
@@ -372,24 +391,18 @@ if __name__ == "__main__":
     # 設定玩家
     players = [Player('國家機器'), Player('韓國瑜'), Player('國家機器的助手'), Player('李佳芬')]
     model, num, close_show = control_model()  # 此局的遊戲型態
-    threads = []  # 儲存線程以待關閉
     num_completed = 0
     try:
         start_time = time.time()
         for i in range(num):
-            t = Thread(target=bridge_game, args=(model, close_show,))
-            t.start()  # 開啟線程
-            threads.append(t)
-            percent = (i / num) * 100
-            print("目前完成{}次\t進度 | {:>5.3f}%".format(i, percent))
+            t = bridge_game(model, close_show)
+            percent = ((i+1) / num) * 100
+            print("目前完成{}次\t進度 | {:>5.3f}%".format(i+1, percent))
             num_completed +=1
-
-        # 關閉線程
-        for t in threads:
-            t.join()
-    
+            for j in range(4):
+                players[j].call_status = int(0)
     finally:    
         end_time = time.time()
-        win_ratio = count_A_win / (num_completed )
+        win_ratio = count_A_win / (num_completed)
         print('總共執行了{}次，A隊勝利{}次，勝率為{:.5f}'.format(num_completed, count_A_win, win_ratio))
         print('共耗費{:.3f}秒'.format(end_time - start_time))

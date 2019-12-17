@@ -29,7 +29,9 @@ class Smart(Player):
         else:
             pass
 
-    def decide(self, num, person_on_turn, person_got_trick, suite_for_this_turn, max_card): # 非第一個出牌
+    def decide(self, num, person_on_turn, person_got_trick, suite_for_this_turn, max_card, teammate_card): # 非第一個出牌
+        
+
         if num == 1: # 隊友拿到 或 對方拿到 且 沒更大的牌，就出最小
             # length = len(self.cards_on_hand()
 
@@ -55,10 +57,18 @@ class Smart(Player):
                         return cards[0]
                     else:
                         return cards[len(cards) - 1]
-                
-        # 如果我的夥伴出JQK，我就出相同花色最小的（除了king)
+        
+
+         # 如果我的夥伴出JQK，我就出相同花色最小的（除了king)
         if num == 2:
-            pass
+            if teammate_card == 11 | 12 | 13:
+                if suite_for_this_turn in person_on_turn.suites_on_hand():
+                    suites_on_hand = person_on_turn.find_suite(suite_for_this_turn)
+                    teammate_card[(position + 2) % 4] = card_on_turn.face
+                    return suites_on_hand[0]
+            else:
+                return random_choose(self, len(self.cards_on_hand), suite_for_this_turn)
+            
 
         
         # 如果夥伴出小等8，我就出小於8     
@@ -74,6 +84,3 @@ if __name__ == '__main__':
 # card on this turn (and biggest)
 # king 
 # probability of others' main card
-
-
-

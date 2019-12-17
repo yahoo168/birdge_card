@@ -185,9 +185,10 @@ def call(position, players, model, nickname = "國家機器"):
 
 # 每回合玩牌過程
 
-def play(position, players, king, model, close_show, nickname="國家機器"):  # 玩家的名字 待改
+def play(position, players, king, model, close_show, num_strategy,nickname="國家機器"):  # 玩家的名字 待改
     person_on_turn = players[position]
-
+    # 此回合出牌情況
+    
     # 如果不是真人玩家，展示所有電腦的手牌
     if model != 0:
         show_cards(close_show)
@@ -213,6 +214,8 @@ def play(position, players, king, model, close_show, nickname="國家機器"):  
 
     person_got_trick = person_on_turn  # 目前牌面最大的人
     max_card = fst_card  # 這回合最終獲勝的牌，預設為第一張牌
+    teammate_card = [0 for i in range(4)]
+    teammate_card[(position + 2) % 4] = fst_card.face
 
     position += 1  # 出完牌後，換下一個人出
     if position == 4:  # 配合座位列表值，滿四就歸零
@@ -232,15 +235,19 @@ def play(position, players, king, model, close_show, nickname="國家機器"):  
                     person_on_turn, len(person_on_turn.cards_on_hand), suite_for_this_turn)
                 time.sleep(0.3)  # 稍微緩速，增強真實感
 
-
-
         if model == 1:
-            # card_on_turn = random_choose(
-            #     person_on_turn, len(person_on_turn.cards_on_hand), suite_for_this_turn)
-            card_on_turn = person_on_turn.decide(1, person_on_turn, person_got_trick, suite_for_this_turn, max_card)
+            
+            # 如果輪到的是A隊
+            if person_on_turn.name in ('國家機器', '國家機器的助手'):
+                card_on_turn = person_on_turn.decide(num_strategy, person_on_turn, person_got_trick, suite_for_this_turn, max_card, teammate_card[position])
+                teammate_card[(position + 2) % 4] = card_on_turn.face
+            
+            # 如果輪到的是B隊
+            else:
+                card_on_turn = random_choose(
+                person_on_turn, len(person_on_turn.cards_on_hand), suite_for_this_turn)
+            
 
-        if model == 2:
-            pass
 
         face_on_turn = card_on_turn.face
         if close_show != -1:
@@ -263,11 +270,11 @@ def play(position, players, king, model, close_show, nickname="國家機器"):  
         if position == 4:
             position = 0
     # end of 第一張牌丟出後的牌局
-
+    
     return(person_got_trick, max_card)
 
 
-def bridge_game(model, close_show):  # 牌局開始
+def bridge_game(model, close_show, num_strategy):  # 牌局開始
     p = Poker()  # 建立牌組
     p.shuffle()  # 洗牌
     global count_A_win
@@ -318,7 +325,7 @@ def bridge_game(model, close_show):  # 牌局開始
 
         # 各回合開始
         person_got_trick, max_card = play(
-            position, players, king, model, close_show)
+            position, players, king, model, close_show, num_strategy)
 
         # 由贏的人優先出牌
         position = players.index(person_got_trick)
@@ -348,13 +355,7 @@ def control_model():
     num = 1  # 牌局執行次數，預設為1，可由model選擇修改
     close_show = 1  # 是否開啟顯示過程，預設為開啟，可由model選擇修改
     model = input("請輸入本局型態:\n\t扮演國家機器，和助手一起消滅台灣敗類，請輸入 0:\n\
-\t電腦自動對戰，請輸入 1: \n\
-\t測試橋牌策略，請輸入 2: \n\
-\t想告白，請輸入 520:\n")
-
-    if model == "520":
-        animated_loading(1)  # 顯示小動畫
-        return control_model()
+\t電腦自動對戰，請輸入 1: \n")
 
     if model not in map(str, range(0, 3)):
         print('\n看清楚指示，瞎了去看眼科 o__o，重選啦幹\n')
@@ -364,6 +365,7 @@ def control_model():
         # print('因為我懶的防錯了，所以這邊不打數字會爆掉，不用試了')
         try:
             num = int(input('您希望跑幾次呢？請輸入阿拉伯數字:'))
+            num_strategy = int(input('您希望給A隊賦予幾號策略？請輸入阿拉伯數字:'))
         except:
             print('\n叫你打阿拉伯數字，你打啥小？\n')
             return control_model()
@@ -376,12 +378,8 @@ def control_model():
                 animated_loading(2)  # 顯示小動畫
                 return control_model()
 
-    if model == "2":
-        print("施工中...\n")
-        return control_model()
-
-    else:
-        return (int(model), num, close_show)
+    
+    return (int(model), num, close_show, num_strategy)
 
 
 # 替共享變數（A隊勝率）上鎖
@@ -391,18 +389,20 @@ count_A_win = 0
 
 if __name__ == "__main__":
     # 設定玩家
-    players = [Smart('國家機器'), Smart('韓國瑜'), Smart('國家機器的助手'), Smart('李佳芬')]
-    model, num, close_show = control_model()  # 此局的遊戲型態
+    players = [Smart('國家機器'), Player('韓國瑜'), Smart('國家機器的助手'), Player('李佳芬')]
+    model, num, close_show, num_strategy = control_model()  # 此局的遊戲型態
     num_completed = 0
     try:
         start_time = time.time()
         for i in range(num):
-            t = bridge_game(model, close_show)
+            t = bridge_game(model, close_show, num_strategy)
             percent = ((i+1) / num) * 100
-            print("目前完成{}次\t進度 | {:>5.3f}%".format(i+1, percent))
+            sys.stdout.write('\r'+"目前完成{}次\t進度 | {:>5.3f}%".format(i+1, percent))
             num_completed +=1
             for j in range(4):
                 players[j].call_status = int(0)
+        print()
+
     finally:    
         end_time = time.time()
         win_ratio = count_A_win / (num_completed)

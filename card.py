@@ -145,7 +145,3 @@ def main():
         print(player.name + ':', end=' ')
         player.arrange(get_key)
         print(player.cards_on_hand)
-
-
-if __name__ == '__main__':
-    main()

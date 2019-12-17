@@ -1,6 +1,7 @@
 import random
 import math
 from card import *
+from robot import *
 import sys
 import time
 from threading import Thread, Lock
@@ -234,8 +235,9 @@ def play(position, players, king, model, close_show, nickname="國家機器"):  
 
 
         if model == 1:
-            card_on_turn = random_choose(
-                person_on_turn, len(person_on_turn.cards_on_hand), suite_for_this_turn)
+            # card_on_turn = random_choose(
+            #     person_on_turn, len(person_on_turn.cards_on_hand), suite_for_this_turn)
+            card_on_turn = person_on_turn.decide(1, person_on_turn, person_got_trick, suite_for_this_turn, max_card)
 
         if model == 2:
             pass
@@ -389,7 +391,7 @@ count_A_win = 0
 
 if __name__ == "__main__":
     # 設定玩家
-    players = [Player('國家機器'), Player('韓國瑜'), Player('國家機器的助手'), Player('李佳芬')]
+    players = [Smart('國家機器'), Smart('韓國瑜'), Smart('國家機器的助手'), Smart('李佳芬')]
     model, num, close_show = control_model()  # 此局的遊戲型態
     num_completed = 0
     try:

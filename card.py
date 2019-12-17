@@ -129,6 +129,10 @@ class Player(object):
 def get_key(card):
     return (card.suite, card.face)
 
+# 排序規則-先根據點數再根據花色排序
+def get_key2(card):
+    return (card.face, card.suite)
+
 def main():
     p = Poker()
     p.shuffle()

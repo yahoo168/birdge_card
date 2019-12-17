@@ -5,32 +5,6 @@ import sys
 import time
 from threading import Thread, Lock
 
-#  無聊的小動畫彩蛋
-
-
-def animated_loading(option):
-    if option == 1:
-        print('原住民小石 ： 喔啊發薩撒刁得！！ 小馮我愛你！！！ ')
-        time.sleep(2.5)
-        print('醫學系小馮 ：我也是！！ ♥你 喜歡跟你做♥心！')
-        print('關燈後...')
-        time.sleep(2.5)
-        for _ in range(10):
-            print('醫學系小馮：' + 'A' * 15 + '!!!', sep=' ')
-            time.sleep(0.5)
-
-    if option == 2:
-        print('\n-1 跟 1 都搞錯，你他媽喜憨兒嗎？\n')
-        time.sleep(1)
-        print('\n就是有你們這種人，程式才要防錯變得很長，懲罰一下:')
-        print('滾回去重選')
-        chars = "/—\\|"*10
-        for char in chars:
-            sys.stdout.write('\r'+'loading...'+char)
-            time.sleep(.1)
-            sys.stdout.flush()
-
-
 def call_choose(person, valid_suite, valid_num):
     person.arrange(get_key)
     print('\n你的手牌', person.cards_on_hand)

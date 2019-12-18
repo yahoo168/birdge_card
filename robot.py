@@ -14,8 +14,6 @@ def random_choose(person, num, suite_for_this_turn=-1):  # 出牌的人，它剩
         card_choosed = cards_on_hand_for_a_suite[random.randint(
             0, len(cards_on_hand_for_a_suite)-1)]
 
-    person.cards_on_hand.remove(card_choosed)
-
     return card_choosed
 
 class Smart(Player):

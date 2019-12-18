@@ -23,6 +23,7 @@ class Smart(Player):
         super().__init__(name)
 
     def fst_turn_decide(self, num, person_on_turn, king): # 第一個出牌
+        # 直接出king
         if num == 1:
             return random_choose(self, len(self.cards_on_hand), king)
 
@@ -38,19 +39,13 @@ class Smart(Player):
 
             for i in range(len(suites)):
                 if (len(suites) == 1) and (suites[i][0].suite == king):
-                    chosen_suite = suites[i][0]
+                    chosen_suite = random_choose(self, len(suites[i]), king)
                 elif (len(suites[i]) < min_length) and (suites[i][0].suite != king):
                     min_length = len(suites[i])
-                    chosen_suite = suites[i][0]
-                else:
-                    return random_choose(self, len(self.cards_on_hand), suite_for_this_turn=-1)
+                    chosen_suite = random_choose(self, len(suites[i]), suites[i][0].suite)
             return chosen_suite
 
-        # 某花色缺牌時，出king。
-        if num == 3:
-            pass
-
-    def decide(self, num, person_on_turn, person_got_trick, suite_for_this_turn, max_card, teammate_card, opposite_card): # 非第一個出牌
+    def decide(self, num, person_on_turn, person_got_trick, suite_for_this_turn, max_card, teammate_card, opposite_card, king): # 非第一個出牌
         if num == 1: # 隊友拿到 或 對方拿到 且 沒更大的牌，就出最小
             # length = len(self.cards_on_hand()
 
@@ -106,5 +101,12 @@ class Smart(Player):
                         return cards[0]
                     else:
                         return cards[len(cards) - 1]
+            else:
+                return random_choose(self, len(self.cards_on_hand), suite_for_this_turn)
+
+        # 某花色缺牌時，出king。
+        if num == 4:
+            if (suite_for_this_turn not in person_on_turn.suites_on_hand()) and (king in person_on_turn.suites_on_hand()):
+                return random_choose(self, len(self.cards_on_hand), king)
             else:
                 return random_choose(self, len(self.cards_on_hand), suite_for_this_turn)

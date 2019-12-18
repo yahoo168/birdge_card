@@ -254,7 +254,7 @@ def play(position, players, king, model, close_show, num_strategy1, num_strategy
             
             # 如果輪到的是A隊
             if person_on_turn.name in ('國家機器', '國家機器的助手'):
-                card_on_turn = person_on_turn.decide(num_strategy2, person_on_turn, person_got_trick, suite_for_this_turn, max_card, teammate_card, opposite_card)
+                card_on_turn = person_on_turn.decide(num_strategy2, person_on_turn, person_got_trick, suite_for_this_turn, max_card, teammate_card, opposite_card, king)
                 teammate_card = card_on_turn.face
             
             # 如果輪到的是B隊
@@ -296,10 +296,16 @@ def bridge_game(model, close_show, num_strategy1, num_strategy2):  # 牌局開�
     p = Poker()  # 建立牌組
     p.shuffle()  # 洗牌
     global count_A_win
+
+    # 清空牌組
+    for player in players:
+        player.cards_on_hand.clear()
+
     # 發牌
     for _ in range(13):
         for player in players:
             player.get(p.next)
+
     # random.shuffle(players)  # 玩家座位重排
     team_A = (players[0], players[2])  # A隊伍
     team_B = (players[1], players[3])  # B隊伍
@@ -369,6 +375,7 @@ def bridge_game(model, close_show, num_strategy1, num_strategy2):  # 牌局開�
         count_A_win += 1
         shared_resource_lock.release()
     return True
+
 def control_model():
     num = 1  # 牌局執行次數，預設為1，可由model選擇修改
     close_show = 1  # 是否開啟顯示過程，預設為開啟，可由model選擇修改
@@ -385,7 +392,17 @@ def control_model():
         # print('因為我懶的防錯了，所以這邊不打數字會爆掉，不用試了')
         try:
             num = int(input('您希望跑幾次呢？請輸入阿拉伯數字:'))
+            print("\n策略選項" + "-"*15)
+            print("策略1：直接出king")
+            print("策略2：若該花色不是king，則出數量最少的那個花色")
+            print("-"*20)
             num_strategy1 = int(input('若A隊的成員為首位出牌者，你希望採用第幾號首位出牌策略？請輸入阿拉伯數字:'))
+            print("\n策略選項" + "-"*15)
+            print("策略1：隊友拿到或對方拿到墩，且沒更大的牌，就出最小")
+            print("策略2：如果我的夥伴出JQK，我就出相同花色最小的（除了king)")
+            print("策略3：如果對方出JQKA，且自己沒有更大的牌時，出最小")
+            print("策略4：某花色缺牌時，出king。")
+            print("-"*20)
             num_strategy2 = int(input('若A隊的成員並不為首位出牌者，你希望採用第幾號出牌策略？請輸入阿拉伯數字:'))
         except:
             print('\n叫你打阿拉伯數字，你打啥小？\n')

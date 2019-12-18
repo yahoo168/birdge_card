@@ -14,6 +14,8 @@ def random_choose(person, num, suite_for_this_turn=-1):  # 出牌的人，它剩
         card_choosed = cards_on_hand_for_a_suite[random.randint(
             0, len(cards_on_hand_for_a_suite)-1)]
 
+    # person.cards_on_hand.remove(card_choosed)
+
     return card_choosed
 
 class Smart(Player):
@@ -40,7 +42,8 @@ class Smart(Player):
                 elif (len(suites[i]) < min_length) and (suites[i][0].suite != king):
                     min_length = len(suites[i])
                     chosen_suite = suites[i][0]
-            
+                else:
+                    return random_choose(self, len(self.cards_on_hand), suite_for_this_turn=-1)
             return chosen_suite
 
         # 某花色缺牌時，出king。
@@ -105,13 +108,3 @@ class Smart(Player):
                         return cards[len(cards) - 1]
             else:
                 return random_choose(self, len(self.cards_on_hand), suite_for_this_turn)
-
-if __name__ == '__main__':
-    AA = person_smart("AA")
-    print(AA.name)
-    print(AA._cards_on_hand)
-
-# information:
-# card on this turn (and biggest)
-# king 
-# probability of others' main card

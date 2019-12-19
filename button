@@ -1,0 +1,8 @@
+if __name__ == "__main__":
+    root = Tk()  # 常駐主視窗
+    root.title("Bridge_Card")
+    root.geometry("400x200")
+
+    root.geometry("400x200")
+    btn = Button(text="START", command=call_choose())
+    btn.pack()

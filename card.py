@@ -117,6 +117,15 @@ class Player(object):
 
         return suites
 
+    """列出某種點數的手牌"""
+    def find_face(self, face):
+        my_card = (face, [])        
+        for card in self._cards_on_hand:
+            if card._face == face:
+                my_card[1].append(card)
+
+        return my_card
+
 
     def __str__(self):
         return self._name
@@ -132,20 +141,3 @@ def get_key(card):
 # 排序規則-先根據點數再根據花色排序
 def get_key2(card):
     return (card.face, card.suite)
-
-def main():
-    p = Poker()
-    p.shuffle()
-    players = [Player('东邪'), Player('西毒'), Player('南帝'), Player('北丐')]
-    for _ in range(13):
-        for player in players:
-            player.get(p.next)
-
-    for player in players:
-        print(player.name + ':', end=' ')
-        player.arrange(get_key)
-        print(player.cards_on_hand)
-
-
-if __name__ == '__main__':
-    main()

@@ -393,15 +393,22 @@ def control_model():
         try:
             num = int(input('您希望跑幾次呢？請輸入阿拉伯數字:'))
             print("\n策略選項" + "-"*15)
-            print("策略1：直接出king")
-            print("策略2：若該花色不是king，則出數量最少的那個花色")
+            print("策略0：隨機出一張")
+            print("策略1：隨機出一張King花色的牌，無King就隨機出其他花色")
+            print("策略2：出數量最少的那個花色（若該花色不是king）")
+            print("策略3: 出隊友手中所持有數量最少的花色，自己若無該花色，隨機出牌")
+            print("策略4: 出隊友手中所持有數量最多的花色，自己若無該花色，隨機出牌")
+            print("策略5：出手中數字最小的牌。")
+            print("策略6：出手中數字最大的牌")
             print("-"*20)
             num_strategy1 = int(input('若A隊的成員為首位出牌者，你希望採用第幾號首位出牌策略？請輸入阿拉伯數字:'))
             print("\n策略選項" + "-"*15)
-            print("策略1：隊友拿到或對方拿到墩，且沒更大的牌，就出最小")
-            print("策略2：如果我的夥伴出JQK，我就出相同花色最小的（除了king)")
-            print("策略3：如果對方出JQKA，且自己沒有更大的牌時，出最小")
-            print("策略4：某花色缺牌時，出king。")
+            print("策略0：隨機出一張符合本回合花色的牌，若缺牌就隨機出其他花色")
+            print("策略1：隊友為當前最大就出最小的牌。若是對方為當前最大且自己沒更大的牌，就出最小，否則壓他。")
+            print("策略2：如果隊友出JQKA，就出相同花色最小的，自己若無該花色，隨機出牌")
+            print("策略3：如果對方出JQKA，且自己沒有更大的牌時，就出相同花色最小的，自己恰好無花色，出King")
+            print("策略4：遇到所要求的花色缺牌時，出King的花色，若無該King，隨機出牌。")
+            
             print("-"*20)
             num_strategy2 = int(input('若A隊的成員並不為首位出牌者，你希望採用第幾號出牌策略？請輸入阿拉伯數字:'))
         except:
@@ -433,7 +440,7 @@ if __name__ == "__main__":
     try:
         start_time = time.time()
         for i in range(num):
-            t = bridge_game(model, close_show, num_strategy1, num_strategy2)
+            bridge_game(model, close_show, num_strategy1, num_strategy2)
             percent = ((i+1) / num) * 100
             sys.stdout.write('\r'+"目前完成{}次\t進度 | {:>5.3f}%".format(i+1, percent))
             num_completed +=1

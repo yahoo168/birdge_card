@@ -23,7 +23,11 @@ class Smart(Player):
         super().__init__(name)
 
     def fst_turn_decide(self, num, person_on_turn, king): # 第一個出牌
-        # 直接出king
+        # 隨機出一張牌
+        if num == 0:
+            return random_choose(self,len(self.cards_on_hand))
+
+        # 隨機出一張King花色的牌，無King就隨機出
         if num == 1:
             return random_choose(self, len(self.cards_on_hand), king)
 
@@ -45,10 +49,46 @@ class Smart(Player):
                     chosen_suite = random_choose(self, len(suites[i]), suites[i][0].suite)
             return chosen_suite
 
-    def decide(self, num, person_on_turn, person_got_trick, suite_for_this_turn, max_card, teammate_card, opposite_card, king): # 非第一個出牌
-        if num == 1: # 隊友拿到 或 對方拿到 且 沒更大的牌，就出最小
-            # length = len(self.cards_on_hand()
+        # 出隊友手中所持有數量最少的花色
+        if num == 3:
+            my_teammate = self.teammate
+            suites = []
+            for suite in '♠♥♣♦':
+                suites.append(len(my_teammate.find_suite(suite)))
+            # print("我隊友是" + my_teammate.name, list(zip('♠♥♣♦',suites))) 
+            chosen_suite = list('♠♥♣♦')[suites.index(min(suites))]
+            return random_choose(self, len(self.cards_on_hand), chosen_suite)
 
+        # 出隊友手中所持有數量最多的花色
+        if num == 4:
+            my_teammate = self.teammate
+            suites = []
+            for suite in '♠♥♣♦':
+                suites.append(len(my_teammate.find_suite(suite)))
+            # print("我隊友是" + my_teammate.name, list(zip('♠♥♣♦',suites))) 
+            chosen_suite = list('♠♥♣♦')[suites.index(max(suites))]
+            return random_choose(self, len(self.cards_on_hand), chosen_suite)
+
+        #出手中數字最小的牌
+        if num == 5:
+            my_card  = self.cards_on_hand
+            my_card.sort(key=get_key2)
+            return my_card[0]
+
+        #出手中數字最大的牌
+        if num == 6:
+            my_card  = self.cards_on_hand
+            my_card.sort(key=get_key2)
+            return my_card[-1]
+
+
+
+    def decide(self, num, person_on_turn, person_got_trick, suite_for_this_turn, max_card, teammate_card, opposite_card, king): # 非第一個出牌
+        if num == 0:
+            return random_choose(self,len(self.cards_on_hand), suite_for_this_turn)
+
+        if num == 1: # 隊友為當前最大就出最小的牌，若是對方為當前最大且自己沒更大的牌，就出最小，否則壓他。
+            
             if self.teammate == person_got_trick:
                 if suite_for_this_turn in person_on_turn.suites_on_hand():
                     suites_on_hand = person_on_turn.find_suite(suite_for_this_turn)
@@ -72,9 +112,9 @@ class Smart(Player):
                     else:
                         return cards[len(cards) - 1]
                 
-        # 如果我的夥伴出JQK，我就出相同花色最小的（除了king)
+        # 如果我的夥伴出JQKA，我就出相同花色最小的
         if num == 2:
-            if teammate_card == 11 or 12 or 13:
+            if teammate_card == 11 or 12 or 13 or 14:
                 if suite_for_this_turn in person_on_turn.suites_on_hand():
                     suites_on_hand = person_on_turn.find_suite(suite_for_this_turn)
                     return suites_on_hand[0]
@@ -95,12 +135,14 @@ class Smart(Player):
                     else:
                         return suites_on_hand[len(suites_on_hand) - 1]
                 else:
-                    person_on_turn.arrange(get_key2)
-                    cards = person_on_turn.cards_on_hand
-                    if cards[len(cards) - 1].face < max_card.face:
-                        return cards[0]
-                    else:
-                        return cards[len(cards) - 1]
+                    return random_choose(self, len(self.cards_on_hand), king)
+                # else:
+                #     person_on_turn.arrange(get_key2)
+                #     cards = person_on_turn.cards_on_hand
+                #     if cards[len(cards) - 1].face < max_card.face:
+                #         return cards[0]
+                #     else:
+                #         return cards[len(cards) - 1]
             else:
                 return random_choose(self, len(self.cards_on_hand), suite_for_this_turn)
 

@@ -331,7 +331,12 @@ count_A_win = 0
 
 if __name__ == "__main__":
     # 設定玩家
-    players = [Smart('國家機器'), Player('韓國瑜'), Smart('國家機器的助手'), Player('李佳芬')]
+    a = Smart('國家機器')
+    b = Player('韓國瑜')
+    c = Smart('國家機器的助手')
+    d = Player('李佳芬')
+
+    players = [a,b,c,d]
     model, num, close_show, num_strategy1, num_strategy2 = control_model()  # 此局的遊戲型態
     bridge_game(model, close_show, num_strategy1, num_strategy2)
             

@@ -19,8 +19,10 @@ def random_choose(person, num, suite_for_this_turn=-1):  # 出牌的人，它剩
     return card_choosed
 
 class Smart(Player):
-    def __init__(self, name):
+    def __init__(self, name, strategy1, strategy2):
         super().__init__(name)
+        self.strategy1 = strategy1
+        self.strategy2 = strategy2
 
     def fst_turn_decide(self, num, person_on_turn, king): # 第一個出牌
         # 隨機出一張牌

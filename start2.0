@@ -227,7 +227,7 @@ def play(position, players, king, model, close_show, num_strategy1, num_strategy
                 time.sleep(0.3)  # 稍微緩速，增強真實感
 
         face_on_turn = card_on_turn.face
-
+        print(person_on_turn, card_on_turn)
         # 若花色相同，單純比大小 (註：此處是以字元的 Ascii 碼比對)
         if suite_for_this_turn == card_on_turn.suite:
             if face_on_turn > max_card.face:
@@ -354,4 +354,5 @@ if __name__ == "__main__":
     btn.pack()
 
     root.mainloop()
+    # 設定玩家
     

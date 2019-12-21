@@ -5,7 +5,7 @@ from robot import *
 import sys
 import time
 from threading import Thread, Lock
-
+from tkinter import *
 
 def call_choose(person, valid_suite, valid_num):
     person.arrange(get_key)
@@ -18,7 +18,7 @@ def call_choose(person, valid_suite, valid_num):
     if number == "pass":
         person.call_status = int(1)
         suite, number = valid_suite, valid_num
-        print(person.name, "pass")
+        result = "pass"
 
     else:
         suite = input("請輸入花色 ♠(0) ♥(1) ♦(2) ♣(3): \n")
@@ -128,6 +128,17 @@ def call(position, players, model, nickname="國家機器"):
     pass_count = int(0)
     suite_on_call = int(4)
     num_on_call = int(1)
+    p = Poker()  # 建立牌組
+    p.shuffle()  # 洗牌
+    # 清空牌組
+    for player in players:
+        player.cards_on_hand.clear()
+
+    # 發牌
+    for _ in range(13):
+        for player in players:
+            player.get(p.next)
+
     while pass_count < 3:
         person_on_turn = players[position]
         if person_on_turn.call_status == 1:
@@ -234,19 +245,7 @@ def play(position, players, king, model, num_strategy1, num_strategy2, nickname=
 
 
 def bridge_game(model, person_got_call, target_num, king):  # 牌局開始
-    p = Poker()  # 建立牌組
-    p.shuffle()  # 洗牌
     global count_A_win
-
-    # 清空牌組
-    for player in players:
-        player.cards_on_hand.clear()
-
-    # 發牌
-    for _ in range(13):
-        for player in players:
-            player.get(p.next)
-
     # random.shuffle(players)  # 玩家座位重排
     team_A = (players[0], players[2])  # A隊伍
     team_B = (players[1], players[3])  # B隊伍

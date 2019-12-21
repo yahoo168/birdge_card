@@ -8,47 +8,18 @@ from threading import Thread, Lock
 from tkinter import*
 
 
-
 def call_choose(person, valid_suite, valid_num):
     person.arrange(get_key)
     print('\n你的手牌', person.cards_on_hand)
-    n = Label(text=person.cards_on_hand, anchor=N)
+    n = Label( text=person.cards_on_hand, anchor=N)
     n.config(width=50)
     n.pack()
-    """
-    spades=Button(text='spades',command=choose_suite('spades'))
-    hearts=Button(text='hearts')
-    diamonds=Button(text='diamonds')
-    flower=Button(text='flower')
-    call1=Button(text='1')
-    call2=Button(text='2')
-    call3=Button(text='3')
-    call4=Button(text='4')
-    call5=Button(text='5')
-    call6=Button(text='6')
-    call7=Button(text='7')
-    spades.pack()
-    hearts.pack()
-    diamonds.pack()
-    flower.pack()
-    call1.pack()
-    call2.pack()
-    call3.pack()
-    call4.pack()
-    call5.pack()
-    call6.pack()
-    call7.pack()
-    """
-    for i in range(len(person.cards_on_hand)):
-        b=Button(text=person.cards_on_hand[i])
-        b.pack()
-    """
     number = input("請輸入數值 1,2,...,7: ")
 
     if number == "pass":
         person.call_status = int(1)
         suite, number = valid_suite, valid_num
-        result = ("pass")
+        result = "pass"
 
     else:
         suite = input("請輸入花色 ♠(0) ♥(1) ♦(2) ♣(3): \n")
@@ -166,11 +137,9 @@ def show_cards(close_show=1):
 
 
 def call(position, players, model, nickname="國家機器"):
-    close_show = int(1)
     pass_count = int(0)
     suite_on_call = int(4)
     num_on_call = int(1)
-    
     while pass_count < 3:
         person_on_turn = players[position]
         if person_on_turn.call_status == 1:
@@ -181,15 +150,10 @@ def call(position, players, model, nickname="國家機器"):
         if model == 0:
             if person_on_turn.name == nickname:
                 suite_on_call, num_on_call, k = call_choose(person_on_turn, suite_on_call, num_on_call)
-                if close_show != -1:
-                    p_call = Label(text=k)
-                    print(person_on_turn.name, k)
+                print(person_on_turn.name, k)
             else:
                 suite_on_call, num_on_call, k = random_call(person_on_turn, suite_on_call, num_on_call)
-                if close_show != -1:
-                    c_call=Label(text=k)
-                    c_call.pack()
-                    print(person_on_turn.name, k)
+                print(person_on_turn.name, k)
 
         if person_on_turn.call_status == 1:
             pass_count += 1
@@ -242,8 +206,8 @@ def play(position, players, king, model, close_show, num_strategy1, num_strategy
     position += 1  # 出完牌後，換下一個人出
     if position == 4:  # 配合座位列表值，滿四就歸零
         position = 0
-
-    person_on_turn.cards_on_hand.remove(fst_card)
+    if person_on_turn.name != "國家機器":
+        person_on_turn.cards_on_hand.remove(fst_card)
 
     # 第一張牌丟出後的牌局
     for _ in range(3):
@@ -260,7 +224,7 @@ def play(position, players, king, model, close_show, num_strategy1, num_strategy
                 time.sleep(0.3)  # 稍微緩速，增強真實感
 
         face_on_turn = card_on_turn.face
-        print(person_on_turn, card_on_turn)
+
         # 若花色相同，單純比大小 (註：此處是以字元的 Ascii 碼比對)
         if suite_for_this_turn == card_on_turn.suite:
             if face_on_turn > max_card.face:
@@ -281,13 +245,16 @@ def play(position, players, king, model, close_show, num_strategy1, num_strategy
 
     return (person_got_trick, max_card)
 
+def control_model():
+    num = 1  # 牌局執行次數，預設為1，可由model選擇修改
+    close_show = 1  # 是否開啟顯示過程，預設為開啟，可由model選擇修改
+    num_strategy1 = -1
+    num_strategy2 = -2
+    return (int(0), num, close_show, num_strategy1, num_strategy2)
 
 def bridge_game():  # 牌局開始
     players = [Smart('國家機器',0,0), Player('韓國瑜'), Smart('國家機器的助手',0,0), Player('李佳芬')]
-    model = 0
-    close_show = 1
-    num_strategy1 = 1
-    num_strategy2 = 1
+    model, num, close_show, num_strategy1, num_strategy2 = control_model()  # 此局的遊戲型態
     p = Poker()  # 建立牌組
     p.shuffle()  # 洗牌
     global count_A_win
@@ -363,12 +330,6 @@ def bridge_game():  # 牌局開始
     return True
 
 
-def control_model():
-    num = 1  # 牌局執行次數，預設為1，可由model選擇修改
-    close_show = 1  # 是否開啟顯示過程，預設為開啟，可由model選擇修改
-    num_strategy1 = -1
-    num_strategy2 = -2
-    return (int(0), num, close_show, num_strategy1, num_strategy2)
 
 
 # 替共享變數（A隊勝率）上鎖
@@ -389,3 +350,4 @@ if __name__ == "__main__":
     root.mainloop()
     # 設定玩家
     
+

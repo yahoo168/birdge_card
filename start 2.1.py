@@ -1,0 +1,321 @@
+import random
+import math
+from card import *
+from robot import *
+import sys
+import time
+from threading import Thread, Lock
+
+
+def call_choose(person, valid_suite, valid_num):
+    person.arrange(get_key)
+    print('\n你的手牌', person.cards_on_hand)
+    n = Label( text=person.cards_on_hand, anchor=N)
+    n.config(width=50)
+    n.pack()
+    number = input("請輸入數值 1,2,...,7: ")
+
+    if number == "pass":
+        person.call_status = int(1)
+        suite, number = valid_suite, valid_num
+        print(person.name, "pass")
+
+    else:
+        suite = input("請輸入花色 ♠(0) ♥(1) ♦(2) ♣(3): \n")
+        if suite not in "0123" or (number not in "1234567"):
+            print("您的輸入不合規則!")
+            return call_choose(person, valid_suite, valid_num)
+
+        if int(number) == int(valid_num) and (int(suite) >= valid_suite):
+            print("您的輸入不合規則!")
+            return call_choose(person, valid_suite, valid_num)
+
+        if int(number) < int(valid_num):
+            print("您的輸入不合規則!")
+            return call_choose(person, valid_suite, valid_num)
+        result = ["♠", "♥", "♦", "♣"][int(suite)] + str(number)
+    return suite, number, result
+
+
+def random_call(person, suite, number):
+    prob = (random.randint(0, 100) % 2)
+    if int(suite) == int(4):
+        sui = int(suite) - 1
+        num = number
+        result = ["♠", "♥", "♦", "♣"][int(sui)] + str(num)
+    else:
+        if prob == 0:
+            sui, num = suite, number
+            person.call_status = int(1)
+            result = "pass"
+        if prob == 1:
+            if int(suite) > 0:
+                sui = int(suite) - 1
+                num = number
+                result = ["♠", "♥", "♦", "♣"][int(sui)] + str(num)
+            else:
+                if int(number) == 7:
+                    person.call_status = int(1)
+                    sui, num = suite, number
+                    result = "pass"
+                else:
+                    sui = 3
+                    num = int(number) + 1
+                    result = ["♠", "♥", "♦", "♣"][int(sui)] + str(num)
+    return sui, num, result
+
+
+# 出牌的人 自己選要出什麼
+def choose(person, suite_for_this_turn="♠♥♦♣"):
+    person.arrange(get_key)
+    print('\n你的手牌', person.cards_on_hand)
+    suite = input("請輸入花色 ♠(0) ♥(1) ♦(2) ♣(3): ")
+    face = input("請輸入數值 A,2,...J,Q,K: \n")
+
+    # 輸入型態錯誤
+    if suite not in "0123" or (face not in map(str, range(2, 11)) and face not in "AJQK"):
+        print("您的輸入不合規則! 注意：A 和 JQK 請直接輸入文字，而非數字!")
+        return choose(person, suite_for_this_turn)
+
+    # 出的花色不符合本回合花色
+    suite = ["♠", "♥", "♦", "♣"][int(suite)]
+
+    if suite_for_this_turn in person.suites_on_hand() and suite not in suite_for_this_turn:
+        print("\n您的花色不符合規則，花色要出{0}，除非您已無該花色的牌".format(suite_for_this_turn))
+        print("但你還有{0}張{1}牌，你又不是韓國瑜，非要作弊不可嗎？\n"
+              .format(len(person.find_suite(suite_for_this_turn)), suite_for_this_turn))
+
+        return choose(person, suite_for_this_turn)
+
+    key = '%s%s' % (suite, face)
+
+    # 出的牌不在手中
+    for card in person.cards_on_hand:
+        if card.__repr__() == key:
+            person.cards_on_hand.remove(card)
+            return card
+
+    print("你選的牌不在你手中！台北的未來在丁守中！ 他要重選，你也一樣")
+    return choose(person, suite_for_this_turn)
+
+
+# 隨機出牌 待改 花色限制問題
+
+
+def random_choose(person, num, suite_for_this_turn=-1):  # 出牌的人，它剩幾張牌
+    cards_on_hand_for_a_suite = person.find_suite(suite_for_this_turn)
+    # 第一個出牌，還沒有決定本回合的花色
+
+    if num == 1:
+        card_choosed = person.cards_on_hand[0]
+
+    elif len(cards_on_hand_for_a_suite) == 0:
+        card_choosed = person.cards_on_hand[random.randint(0, num - 1)]
+
+    else:
+        card_choosed = cards_on_hand_for_a_suite[random.randint(
+            0, len(cards_on_hand_for_a_suite) - 1)]
+
+    # person.cards_on_hand.remove(card_choosed)
+
+    return card_choosed
+
+
+# 展示手牌
+
+
+def call(position, players, model, nickname="國家機器"):
+    pass_count = int(0)
+    suite_on_call = int(4)
+    num_on_call = int(1)
+    while pass_count < 3:
+        person_on_turn = players[position]
+        if person_on_turn.call_status == 1:
+            position += 1
+            if position == 4:
+                position = 0
+            continue
+        if model == 0:
+            if person_on_turn.name == nickname:
+                suite_on_call, num_on_call, k = call_choose(person_on_turn, suite_on_call, num_on_call)
+                print(person_on_turn.name, k)
+            else:
+                suite_on_call, num_on_call, k = random_call(person_on_turn, suite_on_call, num_on_call)
+                print(person_on_turn.name, k)
+
+        if person_on_turn.call_status == 1:
+            pass_count += 1
+        position += 1
+        if position == 4:
+            position = 0
+    for i in range(4):
+        if players[i].call_status == int(0):
+            person_got_call = players[i]
+    king = ["♠", "♥", "♦", "♣"][int(suite_on_call)]
+    return king, num_on_call, person_got_call
+
+
+# 每回合玩牌過程
+
+def play(position, players, king, model, num_strategy1, num_strategy2, nickname="國家機器"):  # 玩家的名字 待改
+    person_on_turn = players[position]
+    # 此回合出牌情況
+
+    # 如果不是真人玩家，展示所有電腦的手牌
+
+    # 第一個玩家出的牌
+    if model == 0:  # 玩家和三名電腦對戰
+        if person_on_turn.name == nickname:
+            fst_card = choose(person_on_turn)
+        else:
+            fst_card = random_choose(person_on_turn,
+                                     len(person_on_turn.cards_on_hand))
+
+            # 待改 fst_card = person_on_turn.fst_turn_decide()
+
+    print(person_on_turn, fst_card)
+
+    suite_for_this_turn = fst_card.suite  # 本回合適用的花色
+    # max_face = fst_card.face
+    # end of 第一個玩家出的牌
+
+    person_got_trick = person_on_turn  # 目前牌面最大的人
+    max_card = fst_card  # 這回合最終獲勝的牌，預設為第一張牌
+
+    teammate_card = 0
+    opposite_card = 0
+
+    if person_on_turn.name in ('國家機器', '國家機器的助手'):
+        teammate_card = fst_card.face
+    else:
+        opposite_card = fst_card.face
+
+    position += 1  # 出完牌後，換下一個人出
+    if position == 4:  # 配合座位列表值，滿四就歸零
+        position = 0
+
+    person_on_turn.cards_on_hand.remove(fst_card)
+
+    # 第一張牌丟出後的牌局
+    for _ in range(3):
+        person_on_turn = players[position]
+
+        if model == 0:
+            if person_on_turn.name == nickname:
+                card_on_turn = choose(person_on_turn, fst_card.suite)
+                time.sleep(0.3)  # 稍微緩速，增強真實感
+
+            else:
+                card_on_turn = random_choose(
+                    person_on_turn, len(person_on_turn.cards_on_hand), suite_for_this_turn)
+                time.sleep(0.3)  # 稍微緩速，增強真實感
+
+        face_on_turn = card_on_turn.face
+
+        # 若花色相同，單純比大小 (註：此處是以字元的 Ascii 碼比對)
+        if suite_for_this_turn == card_on_turn.suite:
+            if face_on_turn > max_card.face:
+                max_card = card_on_turn
+                person_got_trick = person_on_turn
+
+        # 挑戰者出king，而守位者非king
+        elif suite_for_this_turn != card_on_turn.suite:
+            if card_on_turn.suite == king:
+                suite_for_this_turn = card_on_turn.suite
+                max_card = card_on_turn
+                person_got_trick = person_on_turn
+
+        position += 1
+        if position == 4:
+            position = 0
+    # end of 第一張牌丟出後的牌局
+
+    return (person_got_trick, max_card)
+
+
+def bridge_game(model, person_got_call, target_num, king):  # 牌局開始
+    p = Poker()  # 建立牌組
+    p.shuffle()  # 洗牌
+    global count_A_win
+
+    # 清空牌組
+    for player in players:
+        player.cards_on_hand.clear()
+
+    # 發牌
+    for _ in range(13):
+        for player in players:
+            player.get(p.next)
+
+    # random.shuffle(players)  # 玩家座位重排
+    team_A = (players[0], players[2])  # A隊伍
+    team_B = (players[1], players[3])  # B隊伍
+
+    for i in range(4):
+        players[i].teammate = players[(i + 2) % 4]
+
+    position = players.index(person_got_call) + 1
+    if position == 4:
+        position = 0
+
+    target_num = int(target_num) - 1
+    if person_got_call in team_A:
+        target_num *= -1
+
+    # 待改 叫牌引入
+    target_for_B = 7 + target_num
+    target_for_A = 14 - target_for_B
+    trick_team_A = 0
+    trick_team_B = 0
+    print("A隊需要%s墩才能獲勝,B隊需要%s墩才能獲勝" % (target_for_A, target_for_B))
+
+    while trick_team_A != target_for_A and trick_team_B != target_for_B:
+
+        # 各回合開始
+        person_got_trick, max_card = play(
+            position, players, king, model, num_strategy1, num_strategy2)
+
+        # 由贏的人優先出牌
+        position = players.index(person_got_trick)
+
+        if person_got_trick in team_A:
+            team = "A"  # 用於下面打印
+            trick_team_A += 1
+        else:
+            team = "B"  # 用於下面打印
+            trick_team_B += 1
+
+        print("本回合由{0}隊的{1}拿下，他的牌為{2}".format(team, person_got_trick, max_card))
+        print("A隊墩數為{0}，B隊墩數為{1}".format(trick_team_A, trick_team_B))
+        print("-" * 20)
+        print()
+
+    if trick_team_A == target_for_A:
+        shared_resource_lock.acquire()
+        count_A_win += 1
+        shared_resource_lock.release()
+    return True
+
+
+def control_model():
+    num = 1  # 牌局執行次數，預設為1，可由model選擇修改
+    num_strategy1 = -1
+    num_strategy2 = -2
+    return (int(0), num, num_strategy1, num_strategy2)
+
+
+# 替共享變數（A隊勝率）上鎖
+shared_resource_lock = Lock()
+# A隊勝率
+count_A_win = 0
+
+
+if __name__ == "__main__":
+    # 設定玩家
+    players = [Smart('國家機器',0,0), Player('韓國瑜'), Smart('國家機器的助手',0,0), Player('李佳芬')]
+    model, num, num_strategy1, num_strategy2 = control_model()  # 此局的遊戲型態
+    print("叫牌階段")
+    position = (random.randint(0, 100) % 4)
+    king, target_num, person_got_call = call(position, players, model)
+    print("叫牌結果是", king, target_num, ",由%s拿下" % person_got_call.name)
+    print('-' * 12)

@@ -19,7 +19,7 @@ def call_choose(person, valid_suite, valid_num):
     if number == "pass":
         person.call_status = int(1)
         suite, number = valid_suite, valid_num
-        print(person.name, "pass")
+        result = ("pass")
 
     else:
         suite = input("請輸入花色 ♠(0) ♥(1) ♦(2) ♣(3): \n")
@@ -137,6 +137,7 @@ def show_cards(close_show=1):
 
 
 def call(position, players, model, nickname="國家機器"):
+    close_show = int(1)
     pass_count = int(0)
     suite_on_call = int(4)
     num_on_call = int(1)
@@ -248,7 +249,12 @@ def play(position, players, king, model, close_show, num_strategy1, num_strategy
     return (person_got_trick, max_card)
 
 
-def bridge_game(model, close_show, num_strategy1, num_strategy2):  # 牌局開始
+def bridge_game():  # 牌局開始
+    players = [Smart('國家機器',0,0), Player('韓國瑜'), Smart('國家機器的助手',0,0), Player('李佳芬')]
+    model = 0
+    close_show = 1
+    num_strategy1 = 1
+    num_strategy2 = 1
     p = Poker()  # 建立牌組
     p.shuffle()  # 洗牌
     global count_A_win
@@ -344,11 +350,8 @@ if __name__ == "__main__":
     root.geometry("400x200")
 
     root.geometry("400x200")
-    btn = Button(text="START",command=call_choose(person_on_turn, suite_on_call, num_on_call))
+    btn = Button(text="START",command=bridge_game)
     btn.pack()
 
     root.mainloop()
-    # 設定玩家
-    players = [Smart('國家機器'), Player('韓國瑜'), Smart('國家機器的助手'), Player('李佳芬')]
-    model, num, close_show, num_strategy1, num_strategy2 = control_model()  # 此局的遊戲型態
-    bridge_game(model, close_show, num_strategy1, num_strategy2)
+    

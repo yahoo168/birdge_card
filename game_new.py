@@ -59,30 +59,43 @@ def call_choose(person, valid_suite, valid_num):
     return suite, number, result
 
 def random_call(person, suite, number):
-    prob = (random.randint(0, 100) % 2)
-    if int(suite) == int(4):
-        sui = int(suite) - 1
+    spades, hearts, diamonds, flowers = int(0), int(0), int(0), int(0)
+    for i in person.cards_on_hand:
+        if str(i)[0] in "♠":
+            spades += 1
+    for i in person.cards_on_hand:
+        if str(i)[0] in "♥":
+            hearts += 1
+    for i in person.cards_on_hand:
+        if str(i)[0] in "♦":
+            diamonds += 1
+    for i in person.cards_on_hand:
+        if str(i)[0] in "♣":
+            flowers += 1
+    if max(spades, hearts, diamonds, flowers) == flowers:
+        sui = 3
+    if max(spades, hearts, diamonds, flowers) == diamonds:
+        sui = 2
+    if max(spades, hearts, diamonds, flowers) == hearts:
+        sui = 1
+    if max(spades, hearts, diamonds, flowers) == spades:
+        sui = 0
+    if number >= max(spades, hearts, diamonds, flowers)-2:
+        sui = suite
         num = number
-        result = ["♠","♥","♦","♣"][int(sui)]+str(num)
-    else:
-        if prob == 0:
-            sui, num = suite, number
-            person.call_status = int(1)
-            result = "pass"
-        if prob == 1:
-            if int(suite) > 0:
-                sui = int(suite) - 1
-                num = number
-                result = ["♠","♥","♦","♣"][int(sui)]+str(num)
-            else:
-                if int(number) == 7:
-                    person.call_status = int(1)
-                    sui, num = suite, number
-                    result = "pass"
-                else:
-                    sui = 3
-                    num = int(number) + 1
-                    result = ["♠","♥","♦","♣"][int(sui)]+str(num)
+        result = "pass"
+        person.call_status = int(1)
+    if int(sui) > int(suite):
+        num = int(number) + 1
+        result = ["♠","♥","♦","♣"][sui]+str(num)
+    if int(sui) < int(suite):
+        num = number
+        result = ["♠","♥","♦","♣"][sui]+str(num)
+    if int(sui) == int(suite):
+        num = number
+        sui = suite
+        result = "pass"
+        person.call_status = int(1)
     return sui, num, result
 
 # 出牌的人 自己選要出什麼

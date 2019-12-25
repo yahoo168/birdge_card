@@ -11,7 +11,7 @@ from functools import total_ordering
 from cardpic import picture_file
 
 def call_choose(person, valid_suite, valid_num):
-    k = Label(text="我的手牌").place(x=1025, y=50)
+    k = Label(text="我的手牌", bg="#DE8887", fg="white", font=("微軟正黑體", "8", "bold roman"), width=7, height=1).place(x=1025, y=50)
     for i in range(13):
         photo = picture_file(person.cards_on_hand[i])
         a = Label(image=photo)
@@ -88,7 +88,7 @@ def random_call(person, suite, number):
 def choose(person, suite_for_this_turn="♠♥♦♣"):
     person.arrange(get_key)
     your = person.cards_on_hand
-    k = Label(text="我的手牌").place(x=1025, y=50)
+    k = Label(text="我的手牌", bg="#DE8887", fg="white", font=("微軟正黑體", "8", "bold roman"), width=7, height=1).place(x=1025, y=50)
     for i in range(13):
         photo = PhotoImage(file='blank.png')
         a = Label(image=photo)
@@ -173,7 +173,7 @@ def show_cards(close_show=1):
     return 0
 
 def call(position, players, model, nickname = "國家機器"):
-    b = Label(text="叫牌階段").place(x=550,y=0)
+    b = Label(text="叫牌階段", bg="#DE8887", fg="white", font=("微軟正黑體", "8", "bold roman"), width=7, height=1).place(x=550,y=0)
     for i in range(4):
         if players[i].name == "國家機器":
             players[i].arrange(get_key)
@@ -192,16 +192,16 @@ def call(position, players, model, nickname = "國家機器"):
             if person_on_turn.name == nickname:
                 suite_on_call, num_on_call, k = call_choose(person_on_turn, suite_on_call, num_on_call)
                 print(person_on_turn.name, k)
-                outcome = Label(text=(person_on_turn.name+k), justify='left').place(x=450,y=500)
+                outcome = Label(text=(person_on_turn.name+k), justify='left', bg="#ADD8E6", fg="#191970", font=("微軟正黑體", "12", "bold roman"), width=9, height=1).place(x=430,y=500)
             else:
                 suite_on_call, num_on_call, k = random_call(person_on_turn, suite_on_call, num_on_call)
                 print(person_on_turn.name, k)
                 if person_on_turn.name=="韓國瑜":
-                    outcome = Label(text=(person_on_turn.name+k), justify='left').place(x=100, y=300)
+                    outcome = Label(text=(person_on_turn.name+k), justify='left', bg="#98FB98", fg="#006400", font=("微軟正黑體", "12", "bold roman"), width=9, height=1).place(x=150, y=300)
                 elif person_on_turn.name=="國家機器的助手":
-                    outcome = Label(text=(person_on_turn.name+k), justify='left').place(x=450, y=100)
+                    outcome = Label(text=(person_on_turn.name+k), justify='left', bg="#ADD8E6", fg="#191970", font=("微軟正黑體", "12", "bold roman"), width=16, height=1).place(x=415, y=90)
                 elif person_on_turn.name=="李佳芬":
-                    outcome = Label(text=(person_on_turn.name+k), justify='left').place(x=750, y=300)
+                    outcome = Label(text=(person_on_turn.name+k), justify='left', bg="#FFD700", fg="#A0522D", font=("微軟正黑體", "12", "bold roman"), width=9, height=1).place(x=720, y=300)
 
                 
         if model == 1:
@@ -236,7 +236,7 @@ def play(position, players, king, model, close_show, num_strategy1, num_strategy
     label1.place(x=450,y=375)
     label2.place(x=450,y=125)
     label3.place(x=275,y=250)
-    label4.place(x=650,y=250)
+    label4.place(x=590,y=250)
     # 此回合出牌情況
     
     # 如果不是真人玩家，展示所有電腦的手牌
@@ -274,7 +274,7 @@ def play(position, players, king, model, close_show, num_strategy1, num_strategy
         if person_on_turn.name == "韓國瑜":
             label.place(x=275,y=250)
         if person_on_turn.name == "李佳芬":
-            label.place(x=650,y=250)
+            label.place(x=590,y=250)
     suite_for_this_turn = fst_card.suite  # 本回合適用的花色
     # max_face = fst_card.face
     # end of 第一個玩家出的牌
@@ -337,7 +337,7 @@ def play(position, players, king, model, close_show, num_strategy1, num_strategy
             if person_on_turn.name == "韓國瑜":
                 label.place(x=275,y=250)
             if person_on_turn.name == "李佳芬":
-                label.place(x=650,y=250)
+                label.place(x=590,y=250)
         # 若花色相同，單純比大小 (註：此處是以字元的 Ascii 碼比對)
         if suite_for_this_turn == card_on_turn.suite:
             if face_on_turn > max_card.face:
@@ -355,8 +355,7 @@ def play(position, players, king, model, close_show, num_strategy1, num_strategy
         if position == 4:
             position = 0
     # end of 第一張牌丟出後的牌局
-    k = Label(text="按下enter以繼續").place(x=450,y=300)
-    k = input()
+    j = input()
     return(person_got_trick, max_card)
 def control_model():
     num = 1  # 牌局執行次數，預設為1，可由model選擇修改
@@ -425,6 +424,7 @@ def bridge_game():  # 牌局開始
     if close_show != -1:
         print("A隊需要%s墩才能獲勝,B隊需要%s墩才能獲勝" % (target_for_A, target_for_B))
         condition = Label(text=("A隊需要%s墩才能獲勝,B隊需要%s墩才能獲勝" % (target_for_A, target_for_B)), justify='left').pack()
+        notice = Label(text="每圈結束後，按下enter以繼續").place(x=50, y=200)
     while trick_team_A != target_for_A and trick_team_B != target_for_B:
 
         # 各回合開始
@@ -454,10 +454,10 @@ def bridge_game():  # 牌局開始
             print()
     if trick_team_A == target_for_A:
         print("由A隊獲勝!")
-        final = Label(text="A隊獲勝").place(x=450,y=250)
+        final = Label(text="A隊獲勝", bg="#DB7093", fg="white", font=("微軟正黑體", "20", "bold roman"), width=8,height=2).place(x=420,y=260)
     else:
         print("由B隊獲勝!")
-        final = Label(text="B隊獲勝").place(x=450,y=250)
+        final = Label(text="B隊獲勝", bg="#DB7093", fg="white", font=("微軟正黑體", "20", "bold roman"), width=8,height=2).place(x=420,y=260)
     return True
 
 
@@ -468,9 +468,11 @@ if __name__ == "__main__":
     scrollbar.pack(side=RIGHT, fill=Y)
     
     root.title("Bridge_Card")
-    root.geometry("400x100000")
+    root.geometry("10000x100000")
+    root.configure(background="#FFE4E1")
 
-    btn = Button(text="START",command=bridge_game)
+    
+    btn = Button(text="START",command=bridge_game, bg="#FFDAB9", fg="#FF6347", font=("微軟正黑體", "14", "bold roman"), width=9, height=1)
     btn.pack()
 
     root.mainloop()
